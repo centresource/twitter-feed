@@ -1,0 +1,8 @@
+;$Id$
+name = "Twitter Feed"
+description = "Block for displaying recent Tweets."
+core = 7.x
+php = 5.2
+package = "Custom"
+
+

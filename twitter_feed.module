@@ -1,0 +1,123 @@
+<?php
+/**
+ * @file
+ * Code for the Twitter Feed module.
+ */
+
+/**
+ * Implementation of hook_permission().
+ */
+function twitter_feed_permission() {
+  return array(
+    'administer twitter feed blocks' => array(
+      'title' => t('Administer Twitter feed block'),
+      'description' => t('Configure the Twitter feed block.'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_block_info().
+ */
+function twitter_feed_block_info() {
+  $blocks['twitter_feed'] = array(
+    'info' => t('Twitter'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_configure().
+ */
+function twitter_feed_block_configure($delta = '') {
+  $form = array();
+
+  if ($delta == 'twitter_feed') {
+    $form['twitter_feed'] = array(
+       '#type' => 'fieldset',
+       '#title' => t('Twitter Feed')
+    );
+
+    $form['twitter_feed']['twitter_feed_username'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Twitter Handle'),
+      '#description' => t('Enter the desired Twitter username without the @ symbol.'),
+      '#default_value' => variable_get('twitter_feed_username'),
+      '#size' => 40,
+      '#maxlength' => 255,
+      '#required' => true
+    );
+
+    $form['twitter_feed']['twitter_feed_count'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Tweet Count'),
+      '#description' => t('Enter the desired number of tweets.'),
+      '#default_value' => variable_get('twitter_feed_count'),
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#required' => true
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implementation of hook_block_save().
+ */
+function twitter_feed_block_save($delta = '', $edit = array()) {
+  if ($delta == 'twitter_feed') {
+    variable_set($delta . '_username', $edit[$delta . '_username']);
+    variable_set($delta . '_count', $edit[$delta . '_count']);
+  }
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function twitter_feed_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'twitter_feed':
+      drupal_add_js( array('twitter_feed' => array('screen_name' => variable_get('twitter_feed_username', ''))), 'setting');
+      drupal_add_js( array('twitter_feed' => array('tweet_count' => variable_get('twitter_feed_count', ''))), 'setting');
+      drupal_add_js( array('twitter_feed_path' => array('path' => drupal_get_path('module', 'twitter_feed'), '')), 'setting');
+      drupal_add_js(drupal_get_path('module', 'twitter_feed') . '/twitter_feed.js');
+      $block['content']  = _get_twitter_feed();
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Advance the Movement block view callback.
+ */
+function _get_twitter_feed() {
+  return theme('twitter_feed');
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function twitter_feed_theme($existing, $type, $theme, $path) {
+  return array(
+    'twitter_feed' => array(
+      'arguments' => array(),
+      'template' => 'twitter_feed'
+    ),
+  );
+}
+
+/**
+ * Implementation of template_preprocess().
+ */
+function template_preprocess_twitter_feed(&$vars) {
+  $vars['twitter_feed']['username'] = variable_get('twitter_feed_username', '');
+  $vars['twitter_feed']['count'] = variable_get('twitter_feed_count', '');
+
+
+  return $vars;
+}
